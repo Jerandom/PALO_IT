@@ -71,7 +71,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
             FractionallySizedBox(
               widthFactor: 0.5,
               child: clickableButton("Login", () {
-                Navigator.pushReplacementNamed(context,  "/home");
+                Navigator.pushReplacementNamed(context,  "/imageList");
               }),
             ),
             const SizedBox(height: 16),

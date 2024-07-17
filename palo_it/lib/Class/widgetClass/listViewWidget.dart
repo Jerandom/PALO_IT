@@ -1,25 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ListViewWidget extends StatelessWidget {
-  const ListViewWidget({super.key});
+  const ListViewWidget({
+  super.key,
+    required this.images,
+    required this.isLoading,
+  });
+
+  final List<dynamic> images;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: 10,
+      itemCount: images.length + 1,
       itemBuilder: (context, index) {
+        if (index == images.length) {
+          return isLoading ? const Center(child: CircularProgressIndicator()) : const SizedBox.shrink();
+        }
+        final image = images[index];
         return Card(
           elevation: 2, // Set the elevation for the Card
-          margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: ListTile(
-            title: Text("test"),
-            subtitle: Text("jaha"),
-            leading: Icon(Icons.album), // Example icon
-            trailing: Icon(Icons.arrow_forward), // Example icon
-            onTap: () {
-              // Handle tap on Card
-              print("hello");
-            },
+          margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: CachedNetworkImage(
+            imageUrl: image['download_url'],
+            placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+            errorWidget: (context, url, error) => const Icon(Icons.error),
           ),
         );
       }
