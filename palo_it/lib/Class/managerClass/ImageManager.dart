@@ -11,6 +11,6 @@ Future<List<dynamic>> fetchImages(int page, int limit) async {
 
   else
   {
-    throw Exception('Failed to load images');
+    throw Exception('Invalid Response');
   }
 }

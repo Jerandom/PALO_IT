@@ -1,143 +1,185 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../Class/widgetClass/appBarWidget.dart';
 import '../Class/widgetClass/drawerWidget.dart';
 import '../Class/widgetClass/textBoxWidget.dart';
 import '../Class/widgetClass/listViewWidget.dart';
 
-import '../Class/managerClass/ImageManager.dart';
+import '../Class/managerClass/stateManager.dart';
 
+int initCounter = 0;
+int _page = 0;
+int _limit = 5;
 
-class MyImageListPage extends StatefulWidget {
+late final TextEditingController _pageTB = TextEditingController();
+late final TextEditingController _limitTB = TextEditingController();
+
+class MyImageListPage extends ConsumerWidget {
   const MyImageListPage({super.key});
 
   @override
-  State<MyImageListPage> createState() => _MyImageListPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Access state variables
+    final appState = ref.watch(stateManagerProvider);
+    final images = appState.images;
+    final isLoading = appState.isLoading;
+    final hasConnection = appState.isConnected;
+    final errorMsg = appState.errorMsg;
 
-class _MyImageListPageState extends State<MyImageListPage> {
-  int _page = 1;
-  int _limit = 1;
-  bool _isLoading = false;
-  bool _hasConnection = false;
-  List<dynamic> _images = [];
+    // Function to load more images
+    Future<void> loadMoreImages() async {
+      if (isLoading) return;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadMoreImages();
-  }
+      // Set loading state to true
+      ref.read(stateManagerProvider.notifier).setLoading(true);
 
-  Future<void> _loadMoreImages() async {
-    if (_isLoading) return;
+      try {
+        // Load more images
+        await ref.read(stateManagerProvider.notifier).loadMoreImages(_page, _limit);
+        _page ++;
 
-    setState(() {
-      _isLoading = true;
-      _hasConnection = true;
+        // Set state
+        ref.read(stateManagerProvider.notifier).setLoading(false);
+        ref.read(stateManagerProvider.notifier).setConnected(true);
+      } catch (e) {
+        // Handle errors: set loading and connection state to false
+        ref.read(stateManagerProvider.notifier).setLoading(false);
+        ref.read(stateManagerProvider.notifier).setConnected(false);
+      }
+    }
+
+    void overrideImageList(int page, int limit)
+    {
+      // set new parameters
+      _page = page;
+      _limit = limit;
+
+      //clear and reload the images
+      ref.read(stateManagerProvider.notifier).clearImageList();
+      loadMoreImages();
+    }
+
+    //constructor
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if(initCounter < 1) {
+        loadMoreImages();
+        initCounter++;
+      }
+
     });
 
-    try {
-      final List<dynamic> newImages = await fetchImages(_page, _limit);
-      setState(() {
-        _images.addAll(newImages);
-        _page++;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _hasConnection = false;
-      });
-    }
-  }
-
-  Widget searchBar(){
-    return Container(
-      padding: EdgeInsets.all(16.0),
-      child: Row(
-        children: <Widget>[
-          const Expanded(
-            child: TextBoxWidget(
-              headerText: "Filter Page",
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: TextBoxWidget(
-              headerText: "Filter Limit",
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: (){
-
-              },
-              child: const Text("Search"),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget scrollEvent(){
-    return NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification scrollInfo) {
-        if(scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent && !_isLoading){
-          _loadMoreImages();
-          return true;
-        }
-        return false;
-      },
-      child: ListViewWidget(
-        images: _images,
-        isLoading: _isLoading,
-      ),
-    );
-  }
-
-  Widget errorMessage() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          const Text(
-            'No connection. Please check your internet and try again.',
-            style: TextStyle(fontSize: 16),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _loadMoreImages,
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget myBody() {
-    return Stack(
-      children: <Widget>[
-        Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              searchBar(),
-              Expanded(
-                child: _hasConnection || _images.isNotEmpty ?
-                scrollEvent() : errorMessage(),
+    Widget searchBar() {
+      return Container(
+        padding: EdgeInsets.all(16.0),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: TextBoxWidget(
+                headerText: "Filter Page",
+                inputMode: InputMode.number,
+                controller: _pageTB,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextBoxWidget(
+                headerText: "Filter Limit",
+                inputMode: InputMode.number,
+                controller: _limitTB,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: hasConnection?
+              const Text("Connected",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                  fontSize: 18,
+                ),
+              ):
+              const Text("Disconnected",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  overrideImageList(int.parse(_pageTB.text), int.parse(_limitTB.text));
+                },
+                child: const Text("Search"),
+              ),
+            ),
+          ],
         ),
-      ],
-    );
-  }
+      );
+    }
 
-  @override
-  Widget build(BuildContext context) {
+    Widget scrollEvent() {
+      return NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (scrollInfo is ScrollEndNotification &&
+              scrollInfo.metrics.extentAfter == 0 &&
+              !isLoading) {
+            loadMoreImages();
+            return true; // Ensure the notification is handled
+          }
+          return false; // Return false if condition not met
+        },
+        child: ListViewWidget(
+          images: images,
+          isLoading: isLoading,
+        ),
+      );
+    }
+
+    Widget errorMessage() {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text(
+              'No connection. Please check your internet and try again.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: loadMoreImages,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget myBody() {
+      return Stack(
+        children: <Widget>[
+          Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                searchBar(),
+                Expanded(
+                  child: hasConnection || images.isNotEmpty ?
+                  scrollEvent() : errorMessage(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: const AppBarWidget(title: "Image Caching Example",),
       drawer: const DrawerWidget(),
