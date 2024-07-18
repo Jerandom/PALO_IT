@@ -1,16 +1,35 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 Future<List<dynamic>> fetchImages(int page, int limit) async {
-  final response = await http.get(Uri.parse('https://picsum.photos/v2/list?page=$page&limit=$limit'));
+  final dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 5),
+    ),
+  );
 
-  if (response.statusCode == 200)
-  {
-    return json.decode(response.body);
+  try {
+    final response = await dio.get(
+      'https://picsum.photos/v2/list',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return response.data;
+    }
+    else {
+      throw Exception('Invalid Response');
+    }
   }
-
-  else
-  {
-    throw Exception('Invalid Response');
+  on DioException catch (e) {
+    if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.receiveTimeout) {
+      throw Exception('Request timed out');
+    }
+    else {
+      throw Exception('Request failed: $e');
+    }
   }
 }
