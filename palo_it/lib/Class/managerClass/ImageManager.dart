@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:share/share.dart';
+
 
 Future<List<dynamic>> fetchImages(int page, int limit) async {
   final dio = Dio(
@@ -26,10 +28,14 @@ Future<List<dynamic>> fetchImages(int page, int limit) async {
   }
   on DioException catch (e) {
     if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.receiveTimeout) {
-      throw Exception('Request timed out');
+      throw Exception("Request timed out");
     }
     else {
-      throw Exception('Request failed: $e');
+      throw Exception("Request failed: $e");
     }
   }
+}
+
+void shareImage(String imageUrl) {
+  Share.share(imageUrl);
 }
