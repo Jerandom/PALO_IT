@@ -24,7 +24,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
         padding: EdgeInsets.zero,
         children: [
           const SizedBox(
-            height: 280,
+            height: 320,
             child: DrawerHeader(
               decoration: BoxDecoration(color: Colors.blue),
               child: Column(

@@ -21,7 +21,7 @@ class AppState {
     return AppState(
       images: [],
       isLoading: false,
-      isConnected: true,
+      isConnected: false,
       errorMsg: "",
     );
   }
@@ -106,6 +106,12 @@ class StateManager extends StateNotifier<AppState> {
   void clearImageList(){
     state = state.copyWith(
       setImages: [],
+    );
+  }
+
+  void clearErrorMsg(){
+    state = state.copyWith(
+      setErrorMsg: "",
     );
   }
 }

@@ -36,6 +36,10 @@ Future<List<dynamic>> fetchImages(int page, int limit) async {
   }
 }
 
-void shareImage(String imageUrl) {
-  Share.share(imageUrl);
+void shareImage(String imageUrl) async {
+  try {
+    await Share.share(imageUrl);
+  } catch (e) {
+    throw Exception('Error sharing image: $e');
+  }
 }

@@ -72,20 +72,22 @@ class _TextBoxWidgetState extends State<TextBoxWidget> {
         children: [
           Text(widget.headerText),
           const SizedBox(height: 8),
-          TextField(
-            controller: _controller,
-            keyboardType: widget.inputMode == InputMode.number
-                ? const TextInputType.numberWithOptions(decimal: false)
-                : TextInputType.text,
-            inputFormatters: widget.inputMode == InputMode.number
-                ? [FilteringTextInputFormatter.digitsOnly]
-                : [],
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              hintText: widget.hintText,
-              errorText: errorText,
+          Flexible(
+            child: TextField(
+              controller: _controller,
+              keyboardType: widget.inputMode == InputMode.number
+                  ? const TextInputType.numberWithOptions(decimal: false)
+                  : TextInputType.text,
+              inputFormatters: widget.inputMode == InputMode.number
+                  ? [FilteringTextInputFormatter.digitsOnly]
+                  : [],
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: widget.hintText,
+                errorText: errorText,
+              ),
+              obscureText: widget.obscureText,
             ),
-            obscureText: widget.obscureText,
           ),
         ],
       ),

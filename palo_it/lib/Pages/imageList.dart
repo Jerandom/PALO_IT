@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../Class/widgetClass/appBarWidget.dart';
+import '../Class/widgetClass/dialogWidget.dart';
 import '../Class/widgetClass/drawerWidget.dart';
 import '../Class/widgetClass/textBoxWidget.dart';
 import '../Class/widgetClass/listViewWidget.dart';
@@ -10,7 +11,7 @@ import '../Class/managerClass/stateManager.dart';
 
 int initCounter = 0;
 int _page = 0;
-int _limit = 5;
+int _limit = 1;
 
 late final TextEditingController _pageTB = TextEditingController();
 late final TextEditingController _limitTB = TextEditingController();
@@ -29,6 +30,10 @@ class MyImageListPage extends ConsumerWidget {
 
     // Function to load more images
     Future<void> loadMoreImages() async {
+      //reset the error
+      ref.read(stateManagerProvider.notifier).clearErrorMsg();
+
+      // to prevent multiple calls of loading more images
       if (isLoading) return;
 
       // Set loading state to true
@@ -60,63 +65,66 @@ class MyImageListPage extends ConsumerWidget {
       loadMoreImages();
     }
 
-    //constructor
+    Future<void> refreshImage() async {
+      // refresh the page
+      _page = 0;
+      ref.read(stateManagerProvider.notifier).clearImageList();
+      await loadMoreImages();
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if(initCounter < 1) {
         loadMoreImages();
         initCounter++;
       }
 
+      if(errorMsg.isNotEmpty) {
+        showPopupDialog(context, "Alert", errorMsg);
+      }
     });
 
     Widget searchBar() {
       return Container(
-        padding: EdgeInsets.all(16.0),
-        child: Row(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch, // Ensures children take full width
           children: <Widget>[
-            Expanded(
-              child: TextBoxWidget(
-                headerText: "Filter Page",
-                inputMode: InputMode.number,
-                controller: _pageTB,
+            // Text displaying connection status
+            Text(
+              hasConnection ? "Connected" : "Disconnected",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: hasConnection ? Colors.green : Colors.red,
+                fontSize: 18,
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: TextBoxWidget(
-                headerText: "Filter Limit",
-                inputMode: InputMode.number,
-                controller: _limitTB,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: hasConnection?
-              const Text("Connected",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                  fontSize: 18,
+            const SizedBox(height: 8),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextBoxWidget(
+                    headerText: "Filter Page",
+                    inputMode: InputMode.number,
+                    controller: _pageTB,
+                  ),
                 ),
-              ):
-              const Text("Disconnected",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                  fontSize: 18,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextBoxWidget(
+                    headerText: "Filter Limit",
+                    inputMode: InputMode.number,
+                    controller: _limitTB,
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  overrideImageList(int.parse(_pageTB.text), int.parse(_limitTB.text));
-                },
-                child: const Text("Search"),
-              ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    overrideImageList(int.parse(_pageTB.text), int.parse(_limitTB.text));
+                  },
+                  child: const Text("Search"),
+                ),
+              ],
             ),
           ],
         ),
@@ -130,18 +138,21 @@ class MyImageListPage extends ConsumerWidget {
               scrollInfo.metrics.extentAfter == 0 &&
               !isLoading) {
             loadMoreImages();
-            return true; // Ensure the notification is handled
+            return true;
           }
-          return false; // Return false if condition not met
+          return false;
         },
-        child: ListViewWidget(
-          images: images,
-          isLoading: isLoading,
-        ),
+        child: RefreshIndicator(
+          onRefresh: refreshImage,
+          child: ListViewWidget(
+            images: images,
+            isLoading: isLoading,
+          ),
+        )
       );
     }
 
-    Widget errorMessage() {
+    Widget retry() {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -171,7 +182,7 @@ class MyImageListPage extends ConsumerWidget {
                 searchBar(),
                 Expanded(
                   child: hasConnection || images.isNotEmpty ?
-                  scrollEvent() : errorMessage(),
+                  scrollEvent() : retry(),
                 ),
               ],
             ),
