@@ -54,7 +54,7 @@ class ListViewWidget extends StatelessWidget {
               child: const Text('Save'),
               onPressed: () {
                 Navigator.of(context).pop();
-                //saveImage(imageUrl);
+                downloadAndSaveImage(imageUrl, "image.png");
               },
             ),
             TextButton(

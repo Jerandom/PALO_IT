@@ -49,16 +49,18 @@ class _TextBoxWidgetState extends State<TextBoxWidget> {
   }
 
   void _validateInput() {
-    final text = _controller.text.trim();
+    final String text = _controller.text.trim();
+    final int? intValue = int.tryParse(text); // Convert text to integer
+
     setState(() {
       if (widget.inputMode == InputMode.number) {
-        if (text.isEmpty || text == '0') {
+        if (text.isEmpty || intValue == null || intValue == 0) {
           errorText = 'Please enter a valid number';
         } else {
           errorText = null;
         }
       } else {
-        errorText = null; // No validation for text mode
+        errorText = null;
       }
     });
   }
