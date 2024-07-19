@@ -72,51 +72,66 @@ class MyImageListPage extends ConsumerWidget {
     Widget searchBar() {
       return Container(
         padding: EdgeInsets.all(16.0),
-        child: Row(
+        child: Column(
           children: <Widget>[
-            Expanded(
-              child: TextBoxWidget(
-                headerText: "Filter Page",
-                inputMode: InputMode.number,
-                controller: _pageTB,
+            hasConnection ?
+            const Text(
+              "Connected",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+                fontSize: 18,
+              ),
+            ) :
+            const Text(
+              "Disconnected",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+                fontSize: 18,
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: TextBoxWidget(
-                headerText: "Filter Limit",
-                inputMode: InputMode.number,
-                controller: _limitTB,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: hasConnection?
-              const Text("Connected",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                  fontSize: 18,
+            const SizedBox(height: 8),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextBoxWidget(
+                    headerText: "Filter Page",
+                    inputMode: InputMode.number,
+                    controller: _pageTB,
+                  ),
                 ),
-              ):
-              const Text("Disconnected",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                  fontSize: 18,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextBoxWidget(
+                    headerText: "Filter Limit",
+                    inputMode: InputMode.number,
+                    controller: _limitTB,
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  overrideImageList(int.parse(_pageTB.text), int.parse(_limitTB.text));
-                },
-                child: const Text("Search"),
-              ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FractionallySizedBox(
+                    widthFactor: 1,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        overrideImageList(int.parse(_pageTB.text), int.parse(_limitTB.text));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                      ),
+                      child: const Text(
+                        "Search",
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -126,9 +141,7 @@ class MyImageListPage extends ConsumerWidget {
     Widget scrollEvent() {
       return NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification scrollInfo) {
-          if (scrollInfo is ScrollEndNotification &&
-              scrollInfo.metrics.extentAfter == 0 &&
-              !isLoading) {
+          if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent && !isLoading) {
             loadMoreImages();
             return true; // Ensure the notification is handled
           }

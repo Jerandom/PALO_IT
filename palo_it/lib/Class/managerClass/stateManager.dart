@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 
 import 'ImageManager.dart';
 
@@ -21,7 +20,7 @@ class AppState {
     return AppState(
       images: [],
       isLoading: false,
-      isConnected: true,
+      isConnected: false,
       errorMsg: "",
     );
   }
@@ -44,21 +43,7 @@ class AppState {
 
 // Define a state notifier for managing the app state
 class StateManager extends StateNotifier<AppState> {
-  StateManager() : super(AppState.initial()) {
-    //constructor
-    checkInitialConnectivity();
-  }
-
-  //checking connectivity
-  final Connectivity _connectivity = Connectivity();
-  Future<void> checkInitialConnectivity() async {
-    var connectivityResult = await _connectivity.checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-      setConnected(false);
-    } else {
-      setConnected(true);
-    }
-  }
+  StateManager() : super(AppState.initial());
 
   // Function to load more images
   Future<void> loadMoreImages(int page, int limit) async {
@@ -70,15 +55,6 @@ class StateManager extends StateNotifier<AppState> {
     } catch (e) {
       setErrorMsg("Failed to load images: \n$e");
       throw Exception("Failed to load images: $e");
-    }
-  }
-
-  Future<void> checkConnectivity(WidgetRef ref) async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-      ref.read(stateManagerProvider.notifier).setConnected(false);
-    } else {
-      ref.read(stateManagerProvider.notifier).setConnected(true);
     }
   }
 
