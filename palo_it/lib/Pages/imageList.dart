@@ -13,6 +13,9 @@ int initCounter = 0;
 int _page = 0;
 int _limit = 1;
 
+bool tbPageError = true;
+bool tbLimitError = true;
+
 late final TextEditingController _pageTB = TextEditingController();
 late final TextEditingController _limitTB = TextEditingController();
 
@@ -54,6 +57,14 @@ class MyImageListPage extends ConsumerWidget {
       }
     }
 
+    void setPageError(bool? status){
+      tbPageError = status!;
+    }
+
+    void setLimitError(bool? status){
+      tbLimitError = status!;
+    }
+
     void overrideImageList(int page, int limit)
     {
       // set new parameters
@@ -87,9 +98,8 @@ class MyImageListPage extends ConsumerWidget {
       return Container(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch, // Ensures children take full width
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // Text displaying connection status
             Text(
               hasConnection ? "Connected" : "Disconnected",
               textAlign: TextAlign.center,
@@ -107,6 +117,7 @@ class MyImageListPage extends ConsumerWidget {
                     headerText: "Filter Page",
                     inputMode: InputMode.number,
                     controller: _pageTB,
+                    hasError: setPageError,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -115,12 +126,19 @@ class MyImageListPage extends ConsumerWidget {
                     headerText: "Filter Limit",
                     inputMode: InputMode.number,
                     controller: _limitTB,
+                    hasError: setLimitError,
                   ),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
-                    overrideImageList(int.parse(_pageTB.text), int.parse(_limitTB.text));
+                    if(tbPageError == true || tbLimitError == true)
+                    {
+                      ref.read(stateManagerProvider.notifier).setErrorMsg("Please enter ensure that both inputs are of correct values");
+                    }
+                    else{
+                      overrideImageList(int.parse(_pageTB.text), int.parse(_limitTB.text));
+                    }
                   },
                   child: const Text("Search"),
                 ),

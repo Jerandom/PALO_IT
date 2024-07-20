@@ -8,14 +8,15 @@ enum InputMode {
 
 class TextBoxWidget extends StatefulWidget {
   const TextBoxWidget({
-    Key? key,
+    super.key,
     required this.headerText,
     this.hintText = '',
     this.obscureText = false,
     this.height = 100,
     this.inputMode = InputMode.text,
     this.controller,
-  }) : super(key: key);
+    this.hasError,
+  });
 
   final TextEditingController? controller;
   final String headerText;
@@ -23,6 +24,7 @@ class TextBoxWidget extends StatefulWidget {
   final bool obscureText;
   final double height;
   final InputMode inputMode;
+  final Function(bool?)? hasError;
 
   @override
   State<TextBoxWidget> createState() => _TextBoxWidgetState();
@@ -50,16 +52,26 @@ class _TextBoxWidgetState extends State<TextBoxWidget> {
 
   void _validateInput() {
     final String text = _controller.text.trim();
-    final int? intValue = int.tryParse(text); // Convert text to integer
+    final int? intValue = int.tryParse(text);
 
     setState(() {
       if (widget.inputMode == InputMode.number) {
         if (text.isEmpty || intValue == null || intValue == 0) {
           errorText = 'Please enter a valid number';
-        } else {
-          errorText = null;
+
+          if (widget.hasError != null) {
+            widget.hasError!(true);
+          }
         }
-      } else {
+        else {
+          errorText = null;
+
+          if (widget.hasError != null) {
+            widget.hasError!(false);
+          }
+        }
+      }
+      else {
         errorText = null;
       }
     });
