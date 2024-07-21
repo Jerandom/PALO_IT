@@ -11,7 +11,7 @@ import '../Class/managerClass/stateManager.dart';
 
 int initCounter = 0;
 int _page = 0;
-int _limit = 1;
+int _limit = 5;
 
 bool tbPageError = true;
 bool tbLimitError = true;

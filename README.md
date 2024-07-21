@@ -15,3 +15,13 @@ Building .apk Options:
 Building within IDE Options:
 1. Start Android emulator
 2. Select <Emulator Name> and run 'main.dart'
+
+How to use the app:
+1. Login Screen (Just press login to transit to main application)
+2. Image Caching Screen (Main Program)
+3. Scroll down to load more images
+4. Enter page number and filer limit and press the search button to update how many images and which picture to download
+5. Select the image and dialog box will pop up showing either download or share the selected image
+6. downloaded image will be in the phone gallery
+
+NOTE: I have a login screen as a bonus UI, however there is no feature, thus just press login to transit pages
